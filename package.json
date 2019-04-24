@@ -1,0 +1,27 @@
+{
+  "name": "tuya-cloud-to-influxdb",
+  "version": "0.0.1",
+  "description": "Use Tuya cloud API to push data from devices to influxdb",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nalajcie/tuya-cloud-to-influxdb.git"
+  },
+  "keywords": [
+    "tuya",
+    "influxdb",
+    "tuya-cloud"
+  ],
+  "author": "Marek Białowąs",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nalajcie/tuya-cloud-to-influxdb/issues"
+  },
+  "homepage": "https://github.com/nalajcie/tuya-cloud-to-influxdb#readme",
+  "dependencies": {
+    "@tuyapi/cloud": "^0.4.0"
+  }
+}
