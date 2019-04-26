@@ -4,7 +4,7 @@
   "description": "Use Tuya cloud API to push data from devices to influxdb",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "xo"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,12 @@
   },
   "homepage": "https://github.com/nalajcie/tuya-cloud-to-influxdb#readme",
   "dependencies": {
-    "@tuyapi/cloud": "^0.4.0"
+    "@tuyapi/cloud": "^0.4.1"
+  },
+  "xo": {
+    "space": true
+  },
+  "devDependencies": {
+    "xo": "^0.24.0"
   }
 }
