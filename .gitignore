@@ -59,3 +59,7 @@ typings/
 
 # next.js build output
 .next
+
+# files with sensitive data
+keys.json
+sess.json
