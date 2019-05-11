@@ -1,10 +1,11 @@
 /**
  * Dev environment
- * vim:ts=2:sw=2
+ * vim:ts=2:sw=2:expandtab
  */
 const fs = require('fs');
 const Cloud = require('@tuyapi/cloud');
-const {apiKeys, credentials} = require('./keys.json');
+const Influx = require('influx');
+const {apiKeys, credentials, influxdb} = require('./keys.json');
 
 const api = new Cloud({
   key: apiKeys.key,
@@ -13,6 +14,8 @@ const api = new Cloud({
   certSign: apiKeys.certSign,
   apiEtVersion: '0.0.1',
   region: 'EU'});
+
+const influxDb = new Influx.InfluxDB(influxdb.uri);
 
 function sleep(ms) {
   return new Promise(resolve => {
@@ -46,6 +49,42 @@ function printDev(dev, schema) {
   });
 }
 
+function getDataPoint(group, dev, schema) {
+  const dpsDefDict = {};
+  const dynFields = {};
+
+  const ss = JSON.parse(schema.schemaInfo.schema);
+  for (const def of ss) {
+    dpsDefDict[def.id] = def;
+  }
+
+  Object.keys(dev.dps).forEach(dps => {
+    const def = dpsDefDict[dps];
+
+    let val = dev.dps[dps];
+    if (def.property.type === 'value') {
+      val /= 10 ** def.property.scale;
+    } else if (def.property.type === 'bool') {
+      val = (val) ? 1 : 0;
+    }
+
+    dynFields[def.code] = val;
+  });
+
+  dynFields.ip = dev.ip;
+
+  return {
+    measurement: 'tuya',
+    tags: {
+      group_name: group.name,
+      group_id: group.id,
+      dev_name: dev.name,
+      dev_id: dev.devId
+    },
+    fields: dynFields
+  };
+}
+
 const SESS_CACHE = 'sess.json';
 
 async function getSession(forceLogin = false) {
@@ -66,8 +105,16 @@ async function getSession(forceLogin = false) {
   fs.writeFileSync(SESS_CACHE, JSON.stringify(sess));
 }
 
+async function initInflux() {
+  influxDb.getDatabaseNames()
+    .then(names => {
+      console.log('InfluxDB databases:', names);
+    });
+}
+
 async function test() {
   await getSession();
+  await initInflux();
 
   // Get location list to obtain some GID
   let groups = {};
@@ -92,6 +139,7 @@ async function test() {
   // X let devRelation = await api.request({action: 'tuya.m.my.group.device.relation.list', gid: gid});
   // X console.log(devRelation);
 
+  // TODO: for each GID
   // get device schema list
   const schemaArr = await api.request({action: 'tuya.m.device.ref.info.my.list', gid: gidId});
   const schemaDict = {};
@@ -105,10 +153,15 @@ async function test() {
   // X console.log(devices);
 
   // X let devId = '';
+  const dataPoints = [];
   for (const device of devicesArr) {
     printDev(device, schemaDict[device.productId]);
+    dataPoints.push(getDataPoint(group, device, schemaDict[device.productId]));
     // X devId = device.devId;
   }
+
+  influxDb.writePoints(dataPoints);
+
   /* X
   let statMonth = await api.request({action: 'tuya.m.dp.stat.month.list', gid: gid,
                                      data: {devId: devId,
