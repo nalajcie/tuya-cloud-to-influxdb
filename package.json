@@ -22,7 +22,8 @@
   },
   "homepage": "https://github.com/nalajcie/tuya-cloud-to-influxdb#readme",
   "dependencies": {
-    "@tuyapi/cloud": "^0.4.1"
+    "@tuyapi/cloud": "^0.4.1",
+    "influx": "^5.0.7"
   },
   "xo": {
     "space": true
