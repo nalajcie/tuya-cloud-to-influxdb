@@ -6,12 +6,14 @@ const fs = require('fs');
 const Cloud = require('@tuyapi/cloud');
 const {apiKeys, credentials} = require('./keys.json');
 
-const api = new Cloud({key: apiKeys.key,
-                       secret: apiKeys.secret,
-                       secret2: apiKeys.secret2,
-                       certSign: apiKeys.certSign,
-                       apiEtVersion: '0.0.1',
-                       region: 'EU'});
+const api = new Cloud({
+  key: apiKeys.key,
+  secret: apiKeys.secret,
+  secret2: apiKeys.secret2,
+  certSign: apiKeys.certSign,
+  apiEtVersion: '0.0.1',
+  region: 'EU'});
+
 function sleep(ms) {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
@@ -25,7 +27,6 @@ function printDev(dev, schema) {
   for (const def of ss) {
     dpsDefDict[def.id] = def;
   }
-  //console.log(dpsDefDict)
 
   console.log('Device: %s', dev.name);
 
@@ -59,8 +60,8 @@ async function getSession(forceLogin = false) {
   }
 
   // No session or forceLogin
-  const sid = await api.loginEx({email: credentials.email, password: credentials.pass});
-  const sess = {sid: sid, region: api.region, endpoint: api.endpoint};
+  const sidVal = await api.loginEx({email: credentials.email, password: credentials.pass});
+  const sess = {sid: sidVal, region: api.region, endpoint: api.endpoint};
 
   fs.writeFileSync(SESS_CACHE, JSON.stringify(sess));
 }
@@ -88,8 +89,8 @@ async function test() {
   console.log('getting devices for group', group.name, '(gid=', group.groupId, ')');
   const gidId = group.groupId;
 
-  //let devRelation = await api.request({action: 'tuya.m.my.group.device.relation.list', gid: gid});
-  //console.log(devRelation);
+  // X let devRelation = await api.request({action: 'tuya.m.my.group.device.relation.list', gid: gid});
+  // X console.log(devRelation);
 
   // get device schema list
   const schemaArr = await api.request({action: 'tuya.m.device.ref.info.my.list', gid: gidId});
@@ -97,19 +98,18 @@ async function test() {
   for (const schema of schemaArr) {
     schemaDict[schema.id] = schema;
   }
-  //console.log(schemaDict);
+  // X console.log(schemaDict);
 
   // get device list
   const devicesArr = await api.request({action: 'tuya.m.my.group.device.list', gid: gidId});
-  //console.log(devices);
+  // X console.log(devices);
 
-
-  let devId = '';
+  // X let devId = '';
   for (const device of devicesArr) {
     printDev(device, schemaDict[device.productId]);
-    devId = device.devId;
+    // X devId = device.devId;
   }
-/*
+  /* X
   let statMonth = await api.request({action: 'tuya.m.dp.stat.month.list', gid: gid,
                                      data: {devId: devId,
                                             gwId: devId,
@@ -133,7 +133,9 @@ async function test() {
                                            }});
 
   console.log(changeDevStatus);
-*/
+  */
+
+  sleep(0);
 }
 
 test();
