@@ -112,10 +112,13 @@ async function initInflux() {
     });
 }
 
-async function test() {
+async function init() {
   await getSession();
   await initInflux();
+}
 
+// TODO: cache most of the values gathered here
+async function test() {
   // Get location list to obtain some GID
   let groups = {};
   try {
@@ -191,4 +194,12 @@ async function test() {
   sleep(0);
 }
 
-test();
+function pushInstantenousMeasurements() {
+  console.log('------ new measurements ------');
+  test();
+}
+
+init();
+pushInstantenousMeasurements();
+
+setInterval(pushInstantenousMeasurements, 60 * 1000);
