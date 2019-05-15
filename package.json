@@ -1,8 +1,8 @@
 {
   "name": "tuya-cloud-to-influxdb",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Use Tuya cloud API to push data from devices to influxdb",
-  "main": "index.js",
+  "main": "cli.js",
   "scripts": {
     "test": "xo"
   },
@@ -23,12 +23,14 @@
   "homepage": "https://github.com/nalajcie/tuya-cloud-to-influxdb#readme",
   "dependencies": {
     "@tuyapi/cloud": "^0.4.1",
+    "commander": "^2.20.0",
+    "configstore": "^4.0.0",
     "influx": "^5.0.7"
   },
   "xo": {
     "space": true,
     "rules": {
-        "camelcase": "off"
+      "camelcase": "off"
     }
   },
   "devDependencies": {
