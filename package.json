@@ -23,9 +23,13 @@
   "homepage": "https://github.com/nalajcie/tuya-cloud-to-influxdb#readme",
   "dependencies": {
     "@tuyapi/cloud": "^0.4.1",
+    "cache-manager": "^2.9.0",
+    "cache-manager-fs": "^1.0.7",
     "commander": "^2.20.0",
     "configstore": "^4.0.0",
-    "influx": "^5.0.7"
+    "influx": "^5.0.7",
+    "is": "^3.3.0",
+    "ora": "^3.4.0"
   },
   "xo": {
     "space": true,
