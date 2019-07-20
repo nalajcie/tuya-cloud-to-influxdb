@@ -15,6 +15,7 @@ debug.inspectOpts.depth = 5;
 const pkg = require('./package.json');
 const config = require('./lib/config');
 const api = require('./lib/api');
+const common = require('./lib/common');
 
 program
   .command('auth <user> <pass>')
@@ -43,6 +44,43 @@ program
       }
     });
 
+    reqPromise.catch(error => console.error(error.message));
+  });
+
+program
+  .command('show [groupName] [devName]')
+  .description('show current values available on the devices (optionally filter by group/device name)')
+  .action((groupName, devName) => {
+    const reqPromise = api.getDevices();
+    ora.promise(reqPromise, 'getting device list');
+
+    reqPromise.then(responses => {
+      if (!is.undefined(groupName)) {
+        responses = responses.filter(resp => resp.group.name === groupName);
+      }
+
+      const devices = [];
+      const gids = [];
+      for (const resp of responses) {
+        gids.push(resp.group.id);
+
+        if (is.undefined(devName)) {
+          devices.push(...resp.data);
+        } else {
+          devices.push(...resp.data.filter(dev => dev.name === devName));
+        }
+      }
+
+      debug(devices);
+      const schemaPromise = api.getSchemas(gids);
+      ora.promise(schemaPromise, 'getting device schemas');
+      schemaPromise.then(schemaDict => {
+        debug(schemaDict);
+        for (const dev of devices) {
+          common.printDevice(dev, schemaDict);
+        }
+      });
+    });
     reqPromise.catch(error => console.error(error.message));
   });
 
@@ -76,12 +114,6 @@ program
     }
   });
 
-program
-  .command('config-device [dev name]')
-  .description('manipulate per-device configuration')
-  .action(() => {
-    console.log('TODO');
-  });
 
 function increaseVerbosity(v, currentVerbosity) {
   switch (currentVerbosity) {
@@ -89,7 +121,10 @@ function increaseVerbosity(v, currentVerbosity) {
       debugCtl.enable('cli');
       break;
     case 1:
-      debugCtl.enable('api');
+      debugCtl.enable('cli api');
+      break;
+    case 2:
+      debugCtl.enable('cli api @tuyapi/cloud');
       break;
     default:
       break;
