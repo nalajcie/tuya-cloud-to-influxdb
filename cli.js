@@ -48,28 +48,16 @@ program
   });
 
 program
-  .command('show [groupName] [devName]')
+  .command('show [devName]')
   .description('show current values available on the devices (optionally filter by group/device name)')
-  .action((groupName, devName) => {
+  .option('--group [groupName]', 'Search device only in single group')
+  .action((devName, parser) => {
+    const opts = parser.opts();
     const reqPromise = api.getDevices();
     ora.promise(reqPromise, 'getting device list');
 
     reqPromise.then(responses => {
-      if (!is.undefined(groupName)) {
-        responses = responses.filter(resp => resp.group.name === groupName);
-      }
-
-      const devices = [];
-      const gids = [];
-      for (const resp of responses) {
-        gids.push(resp.group.id);
-
-        if (is.undefined(devName)) {
-          devices.push(...resp.data);
-        } else {
-          devices.push(...resp.data.filter(dev => dev.name === devName));
-        }
-      }
+      const {devices, gids} = common.filterDevices(responses, opts.group, devName);
 
       debug(devices);
       const schemaPromise = api.getSchemas(gids);
