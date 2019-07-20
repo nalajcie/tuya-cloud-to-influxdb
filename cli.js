@@ -86,13 +86,80 @@ program
       const {devices} = common.filterDevices(responses, opts.group, devName);
       debug(devices);
 
-      const resps = [];
       for (const dev of devices) {
-        console.log('scheduling change of device "%s" to %s', dev.name, newState);
-        resps.push(api.switchState(dev.gid, dev.devId, newState));
+        ora.promise(api.switchState(dev.gid, dev.devId, newState),
+          'changing state of device "' + dev.name + '" to ' + newState);
       }
+    });
+    reqPromise.catch(error => console.error(error.message));
+  });
 
-      ora.promise(Promise.all(resps), 'changing state');
+program
+  .command('stats-monthly [devName]')
+  .description('retrieve monthly cumulative stats [works for power monitoring]')
+  .option('--group [groupName]', 'Search device only in single group')
+  .option('--dpId [int]', 'Custom stat to be requested [17]', 17)
+  .action((devName, parser) => {
+    const opts = parser.opts();
+    const reqPromise = api.getDevices();
+
+    ora.promise(reqPromise, 'getting device list');
+    reqPromise.then(responses => {
+      const {devices} = common.filterDevices(responses, opts.group, devName);
+
+      for (const dev of devices) {
+        const statsPromise = api.getMonthlyStats(dev.gid, dev.devId, opts.dpId);
+        ora.promise(statsPromise, 'getting stats for device "' + dev.name + '"');
+
+        statsPromise.then(stats => debug(stats));
+      }
+    });
+    reqPromise.catch(error => console.error(error.message));
+  });
+
+program
+  .command('stats-daily [devName]')
+  .description('retrieve daily cumulative stats [works for power monitoring]')
+  .option('--from [YYYYMMDD]', 'Retrieve stats from a given date (default = 30 days before "to")')
+  .option('--to [YYYYMMDD]', 'Retrieve stats to a given date (default = now)')
+  .option('--group [groupName]', 'Search device only in single group')
+  .option('--dpId [int]', 'Custom stat to be requested [17]', 17)
+  .action((devName, parser) => {
+    const opts = parser.opts();
+    const reqPromise = api.getDevices();
+
+    if (is.undefined(opts.to)) {
+      opts.to = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    }
+
+    if (is.undefined(opts.from)) {
+      const toAsDate = new Date(opts.to.slice(0, 4) + '-' + opts.to.slice(4, 6) + '-' + opts.to.slice(6, 8));
+      opts.from = new Date(toAsDate - (30 * 24 * 3600 * 1000)).toISOString().slice(0, 10).replace(/-/g, '');
+    }
+
+    debug(opts);
+
+    ora.promise(reqPromise, 'getting device list');
+    reqPromise.then(responses => {
+      const {devices} = common.filterDevices(responses, opts.group, devName);
+
+      for (const dev of devices) {
+        const statsPromise = api.getDailyStats(dev.gid, dev.devId, opts.dpId, opts.from, opts.to);
+        ora.promise(statsPromise, 'getting stats for device "' + dev.name + '"');
+
+        statsPromise.then(stats => {
+          debug(stats);
+          if (is.empty(stats)) {
+            console.log('no stats in the requested range');
+            return;
+          }
+
+          console.log('total sum: %s', stats.total);
+          for (let i = 0; i < stats.days.length; ++i) {
+            console.log('%s: %s', stats.days[i], stats.values[i]);
+          }
+        });
+      }
     });
     reqPromise.catch(error => console.error(error.message));
   });
@@ -126,7 +193,6 @@ program
       config.dump();
     }
   });
-
 
 function increaseVerbosity(v, currentVerbosity) {
   switch (currentVerbosity) {
