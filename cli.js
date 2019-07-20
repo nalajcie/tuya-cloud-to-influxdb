@@ -73,6 +73,31 @@ program
   });
 
 program
+  .command('switch <on|off> [devName]')
+  .description('switch state of the device (optionally filter by group/device name)')
+  .option('--group [groupName]', 'Search device only in single group')
+  .action((onOff, devName, parser) => {
+    const opts = parser.opts();
+    const reqPromise = api.getDevices();
+    const newState = onOff === 'on';
+    ora.promise(reqPromise, 'getting device list');
+
+    reqPromise.then(responses => {
+      const {devices} = common.filterDevices(responses, opts.group, devName);
+      debug(devices);
+
+      const resps = [];
+      for (const dev of devices) {
+        console.log('scheduling change of device "%s" to %s', dev.name, newState);
+        resps.push(api.switchState(dev.gid, dev.devId, newState));
+      }
+
+      ora.promise(Promise.all(resps), 'changing state');
+    });
+    reqPromise.catch(error => console.error(error.message));
+  });
+
+program
   .command('time')
   .description('get unix time from the tuya servers (use it to test session validity)')
   .action(() => {
