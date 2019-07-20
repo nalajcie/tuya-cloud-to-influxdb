@@ -25,6 +25,7 @@
     "@tuyapi/cloud": "^0.4.1",
     "cache-manager": "^2.9.0",
     "cache-manager-fs": "^1.0.7",
+    "chalk": "^2.4.2",
     "commander": "^2.20.0",
     "configstore": "^4.0.0",
     "debug": "^4.1.1",
