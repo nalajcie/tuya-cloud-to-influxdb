@@ -7,6 +7,10 @@
 const program = require('commander');
 const ora = require('ora');
 const is = require('is');
+const debugCtl = require('debug');
+const debug = require('debug')('cli');
+
+debug.inspectOpts.depth = 5;
 
 const pkg = require('./package.json');
 const config = require('./lib/config');
@@ -19,14 +23,27 @@ program
     const reqPromise = api.auth(user, pass);
     ora.promise(reqPromise, 'Logging in');
 
-    reqPromise.catch(error => console.log(error.message));
+    reqPromise.catch(error => console.error(error.message));
   });
 
 program
   .command('list')
   .description('list all devices')
   .action(() => {
-    console.log(api.getDevices());
+    const reqPromise = api.getDevices();
+    ora.promise(reqPromise, 'getting device list');
+
+    reqPromise.then(responses => {
+      for (const resp of responses) {
+        debug(resp.group);
+        for (const device of resp.data) {
+          debug(device);
+          console.log('group:', resp.group.name, '\tdevice:', device.name, '(devId:', device.devId, ')');
+        }
+      }
+    });
+
+    reqPromise.catch(error => console.error(error.message));
   });
 
 program
@@ -66,8 +83,24 @@ program
     console.log('TODO');
   });
 
+function increaseVerbosity(v, currentVerbosity) {
+  switch (currentVerbosity) {
+    case 0:
+      debugCtl.enable('cli');
+      break;
+    case 1:
+      debugCtl.enable('api');
+      break;
+    default:
+      break;
+  }
+
+  return currentVerbosity + 1;
+}
+
 // Global options
 program.version(pkg.version);
+program.option('-v, --verbose', 'Increase verbosity, may be appied multiple times', increaseVerbosity, 0);
 
 // Error on unknown commands
 program.on('command:*', () => {
