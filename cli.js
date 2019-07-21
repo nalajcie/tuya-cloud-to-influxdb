@@ -155,9 +155,9 @@ program
             return;
           }
 
-          console.log(chalk`total sum: {green ${stats.total}}`);
+          console.log(chalk`total sum: {green ${stats.total}}`); // `
           for (let i = 0; i < stats.days.length; ++i) {
-            console.log(chalk`${stats.days[i]}: {green ${stats.values[i]}}`);
+            console.log(chalk`${stats.days[i]}: {green ${stats.values[i]}}`); // `
           }
         });
       }
