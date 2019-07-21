@@ -20,7 +20,7 @@ const common = require('./lib/common');
 
 program
   .command('auth <user> <pass>')
-  .description('Authorize the client (this will save only the session ID in the config, no password will be saved)')
+  .description('Authorize the Tuya client (this will save only the session ID in the config, no password will be saved)')
   .action((user, pass) => {
     const reqPromise = api.auth(user, pass);
     ora.promise(reqPromise, 'Logging in');
@@ -187,21 +187,47 @@ program
   });
 
 program
-  .command('config-global')
-  .description('manipulate common configuration')
+  .command('config-tuya')
+  .description('manipulate Tuya API configuration')
   .option('--api-key [apiKey]', 'your tuya.com API key')
   .option('--api-secret [apiSecret]', 'your tuya.com API secret')
   .option('--api-secret2 [apiSecret2]', 'your tuya.com API secret')
   .option('--api-cert-sign [apiCertSign]', 'your mobile app certificate signature')
   .action(parser => {
     const opts = parser.opts();
-    const anyOptProvided = Object.keys(opts).some(optname => !is.undef(opts[optname]));
+    const onlyProvidedOpts = Object.keys(opts)
+      .filter(key => !is.undef(opts[key]))
+      .reduce((obj, key) => {
+        obj[key] = opts[key];
+        return obj;
+      }, {});
 
-    if (anyOptProvided) {
-      config.save(opts);
-    } else {
-      config.dump();
+    if (!is.empty(onlyProvidedOpts)) {
+      config.set(onlyProvidedOpts, 'api');
     }
+
+    config.dump('api');
+  });
+
+program
+  .command('config-influx')
+  .description('manipulate InfluxDB connection configuration')
+  .option('--uri [uri]', 'InfluxDB URI (usually: http://[host]:8086/[dbname])')
+  .option('--measurement [name]', 'Measurement name which is to be send with every request')
+  .action(parser => {
+    const opts = parser.opts();
+    const onlyProvidedOpts = Object.keys(opts)
+      .filter(key => !is.undef(opts[key]))
+      .reduce((obj, key) => {
+        obj[key] = opts[key];
+        return obj;
+      }, {});
+
+    if (!is.empty(onlyProvidedOpts)) {
+      config.set(onlyProvidedOpts, 'influx');
+    }
+
+    config.dump('influx');
   });
 
 function increaseVerbosity(v, currentVerbosity) {
