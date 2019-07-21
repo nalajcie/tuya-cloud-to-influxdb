@@ -112,7 +112,16 @@ program
         const statsPromise = api.getMonthlyStats(dev.gid, dev.devId, opts.dpId);
         ora.promise(statsPromise, 'getting stats for device "' + dev.name + '"');
 
-        statsPromise.then(stats => debug(stats));
+        statsPromise.then(stats => {
+          debug(stats);
+          console.log(chalk`today: {green ${stats.thisDay}}`); // `
+          console.log(chalk`sum: {green ${stats.sum}}`); // `
+          for (const [year, months] of Object.entries(stats.years)) {
+            for (const [month, value] of Object.entries(months)) {
+              console.log(chalk`{yellow ${year}-${month}}: {green ${value}}`); // `
+            }
+          }
+        });
       }
     });
     reqPromise.catch(error => console.error(error.message));
@@ -201,10 +210,11 @@ function increaseVerbosity(v, currentVerbosity) {
       debugCtl.enable('cli');
       break;
     case 1:
-      debugCtl.enable('cli api');
+      debugCtl.enable('cli,api');
       break;
     case 2:
-      debugCtl.enable('cli api @tuyapi/cloud');
+      // This does not work because tuyapi uses different debug module version, use DEBUG=* env var instead
+      debugCtl.enable('cli,api,@tuyapi/cloud');
       break;
     default:
       break;
