@@ -9,6 +9,7 @@ const ora = require('ora');
 const is = require('is');
 const debugCtl = require('debug');
 const debug = require('debug')('cli');
+const chalk = require('chalk');
 
 debug.inspectOpts.depth = 5;
 
@@ -39,7 +40,7 @@ program
         debug(resp.group);
         for (const device of resp.data) {
           debug(device);
-          console.log('group:', resp.group.name, '\tdevice:', device.name, '(devId:', device.devId, ')');
+          console.log(chalk`group: {green ${resp.group.name}}\tdevice: {green ${device.name}} (devId: {yellow ${device.devId}} groupId: {yellow ${resp.group.id}})`); // `
         }
       }
     });
@@ -154,9 +155,9 @@ program
             return;
           }
 
-          console.log('total sum: %s', stats.total);
+          console.log(chalk`total sum: {green ${stats.total}}`);
           for (let i = 0; i < stats.days.length; ++i) {
-            console.log('%s: %s', stats.days[i], stats.values[i]);
+            console.log(chalk`${stats.days[i]}: {green ${stats.values[i]}}`);
           }
         });
       }
