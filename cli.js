@@ -18,6 +18,8 @@ const config = require('./lib/config');
 const api = require('./lib/api');
 const common = require('./lib/common');
 
+const influxDb = common.initInflux();
+
 program
   .command('auth <user> <pass>')
   .description('Authorize the Tuya client (this will save only the session ID in the config, no password will be saved)')
@@ -100,6 +102,8 @@ program
   .description('retrieve monthly cumulative stats [works for power monitoring]')
   .option('--group [groupName]', 'Search device only in single group')
   .option('--dpId [int]', 'Custom stat to be requested [17]', 17)
+  .option('-u,--upload', 'Upload requested data to influxDB')
+  .option('--measurement [name]', 'Measurement name to upload [tuya-stats-monthly]', 'tuya-stats-monthly')
   .action((devName, parser) => {
     const opts = parser.opts();
     const reqPromise = api.getDevices();
@@ -114,12 +118,35 @@ program
 
         statsPromise.then(stats => {
           debug(stats);
+
+          const dataPoints = [];
           console.log(chalk`today: {green ${stats.thisDay}}`); // `
           console.log(chalk`sum: {green ${stats.sum}}`); // `
           for (const [year, months] of Object.entries(stats.years)) {
             for (const [month, value] of Object.entries(months)) {
               console.log(chalk`{yellow ${year}-${month}}: {green ${value}}`); // `
+
+              // WARN: will not work if from and to have different year part
+              const dayAsDate = new Date(`${year}-${month}-01`);
+
+              dataPoints.push({
+                measurement: opts.measurement,
+                timestamp: dayAsDate.getTime() / 1000, // Converting ms to s
+                tags: {
+                  group_name: dev.group_name,
+                  group_id: dev.gid,
+                  dev_name: dev.name,
+                  dev_id: dev.devId
+                },
+                fields: {['sum_' + opts.dpId]: Number(value)}
+              });
             }
+          }
+
+          if (opts.upload && is.defined(influxDb)) {
+            debug(dataPoints);
+            const influxPromise = influxDb.writePoints(dataPoints, {precision: 's'});
+            ora.promise(influxPromise, `uploading data to influxdb for device ${dev.name}`); // `
           }
         });
       }
@@ -134,6 +161,8 @@ program
   .option('--to [YYYYMMDD]', 'Retrieve stats to a given date (default = now)')
   .option('--group [groupName]', 'Search device only in single group')
   .option('--dpId [int]', 'Custom stat to be requested [17]', 17)
+  .option('-u,--upload', 'Upload requested data to influxDB')
+  .option('--measurement [name]', 'Measurement name to upload [tuya-stats-daily]', 'tuya-stats-daily')
   .action((devName, parser) => {
     const opts = parser.opts();
     const reqPromise = api.getDevices();
@@ -164,9 +193,31 @@ program
             return;
           }
 
+          const dataPoints = [];
           console.log(chalk`total sum: {green ${stats.total}}`); // `
           for (let i = 0; i < stats.days.length; ++i) {
             console.log(chalk`${stats.days[i]}: {green ${stats.values[i]}}`); // `
+
+            // WARN: will not work if from and to have different year part
+            const dayAsDate = new Date(opts.to.slice(0, 4) + '-' + stats.days[i]);
+
+            dataPoints.push({
+              measurement: opts.measurement,
+              timestamp: dayAsDate.getTime() / 1000, // Converting ms to s
+              tags: {
+                group_name: dev.group_name,
+                group_id: dev.gid,
+                dev_name: dev.name,
+                dev_id: dev.devId
+              },
+              fields: {['sum_' + opts.dpId]: Number(stats.values[i])}
+            });
+          }
+
+          if (opts.upload && is.defined(influxDb)) {
+            debug(dataPoints);
+            const influxPromise = influxDb.writePoints(dataPoints, {precision: 's'});
+            ora.promise(influxPromise, `uploading data to influxdb for device ${dev.name}`); // `
           }
         });
       }
