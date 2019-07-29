@@ -159,6 +159,7 @@ program
   .description('retrieve daily cumulative stats [works for power monitoring]')
   .option('--from [YYYYMMDD]', 'Retrieve stats from a given date (default = 30 days before "to")')
   .option('--to [YYYYMMDD]', 'Retrieve stats to a given date (default = now)')
+  .option('--yesterday', 'Retrieve stats for previous day only')
   .option('--group [groupName]', 'Search device only in single group')
   .option('--dpId [int]', 'Custom stat to be requested [17]', 17)
   .option('-u,--upload', 'Upload requested data to influxDB')
@@ -174,6 +175,11 @@ program
     if (is.undefined(opts.from)) {
       const toAsDate = new Date(opts.to.slice(0, 4) + '-' + opts.to.slice(4, 6) + '-' + opts.to.slice(6, 8));
       opts.from = new Date(toAsDate - (30 * 24 * 3600 * 1000)).toISOString().slice(0, 10).replace(/-/g, '');
+    }
+
+    if (opts.yesterday) {
+      opts.to = new Date(new Date() - (24 * 3600 * 1000)).toISOString().slice(0, 10).replace(/-/g, '');
+      opts.from = opts.to;
     }
 
     debug(opts);
