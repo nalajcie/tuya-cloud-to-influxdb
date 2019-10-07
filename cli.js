@@ -101,9 +101,9 @@ program
   .command('stats-monthly [devName]')
   .description('retrieve monthly cumulative stats [works for power monitoring]')
   .option('--group [groupName]', 'Search device only in single group')
-  .option('--dpId [int]', 'Custom stat to be requested [17]', 17)
+  .option('--dpId [int]', 'Custom stat to be requested', 17)
   .option('-u,--upload', 'Upload requested data to influxDB')
-  .option('--measurement [name]', 'Measurement name to upload [tuya-stats-monthly]', 'tuya-stats-monthly')
+  .option('--measurement [name]', 'Measurement name to upload', 'tuya-stats-monthly')
   .action((devName, parser) => {
     const opts = parser.opts();
     const reqPromise = api.getDevices();
@@ -161,9 +161,9 @@ program
   .option('--to [YYYYMMDD]', 'Retrieve stats to a given date (default = now)')
   .option('--yesterday', 'Retrieve stats for previous day only')
   .option('--group [groupName]', 'Search device only in single group')
-  .option('--dpId [int]', 'Custom stat to be requested [17]', 17)
+  .option('--dpId [int]', 'Custom stat to be requested', 17)
   .option('-u,--upload', 'Upload requested data to influxDB')
-  .option('--measurement [name]', 'Measurement name to upload [tuya-stats-daily]', 'tuya-stats-daily')
+  .option('--measurement [name]', 'Measurement name to upload', 'tuya-stats-daily')
   .action((devName, parser) => {
     const opts = parser.opts();
     const reqPromise = api.getDevices();
