@@ -54,6 +54,9 @@ program
   .command('show [devName]')
   .description('show current values available on the devices (optionally filter by group/device name)')
   .option('--group [groupName]', 'Search device only in single group')
+  .option('-u,--upload', 'Upload requested data to influxDB')
+  .option('-s,--silent', 'Silent - do not print the current values do console')
+  .option('--measurement [name]', 'Measurement name to upload', 'tuya')
   .action((devName, parser) => {
     const opts = parser.opts();
     const reqPromise = api.getDevices();
@@ -67,8 +70,15 @@ program
       ora.promise(schemaPromise, 'getting device schemas');
       schemaPromise.then(schemaDict => {
         debug(schemaDict);
+        const dataPoints = [];
         for (const dev of devices) {
-          common.printDevice(dev, schemaDict);
+          dataPoints.push(common.getDeviceMeasurement(dev, schemaDict, opts.measurement, !opts.silent));
+        }
+
+        if (opts.upload && is.defined(influxDb)) {
+          debug(dataPoints);
+          const influxPromise = influxDb.writePoints(dataPoints, {precision: 's'});
+          ora.promise(influxPromise, 'uploading data to influxdb');
         }
       });
     });
