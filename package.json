@@ -16,7 +16,8 @@
     "tuya-cloud"
   ],
   "author": "Marek Białowąs",
-  "license": "ISC",
+  "license": "MIT",
+  "bin": "./cli.js",
   "bugs": {
     "url": "https://github.com/nalajcie/tuya-cloud-to-influxdb/issues"
   },
