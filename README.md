@@ -27,9 +27,10 @@ Commands:
 ```
   
 ## Basic usage
-1. First You need to set-up the authentication keys to be used with the CLI. The keys are per-application (eg. Tuya, SmartLife or other branded ones). On details regarding how to get them - check [tuya-sign-hacking]https://github.com/nalajcie/tuya-sign-hacking repo. The below example configures the keys being used in **Tuya** app
+1. First You need to set-up the authentication keys to be used with the CLI. The keys are per-application (eg. Tuya, SmartLife or other branded ones). On details regarding how to get them - check [tuya-sign-hacking](https://github.com/nalajcie/tuya-sign-hacking) repo. The below example configures the keys being used in **Tuya** app
 ```
 ./cli.js config-tuya --api-key 3fjrekuxank9eaej3gcx
+./cli.js config-tuya --api-secret aq7xvqcyqcnegvew793pqjmhv77rneqc
 ./cli.js config-tuya --api-secret2 vay9g59g9g99qf3rtqptmc3emhkanwkx
 ./cli.js config-tuya --api-cert-sign "93:21:9F:C2:73:E2:20:0F:4A:DE:E5:F7:19:1D:C6:56:BA:2A:2D:7B:2F:F5:D2:4C:D5:5C:4B:61:55:00:1E:40"
 ```
