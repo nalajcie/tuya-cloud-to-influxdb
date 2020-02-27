@@ -1,6 +1,6 @@
 {
   "name": "tuya-cloud-to-influxdb",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Use Tuya cloud API to push data from devices to influxdb",
   "main": "cli.js",
   "scripts": {
